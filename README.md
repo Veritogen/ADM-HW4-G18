@@ -16,13 +16,13 @@ the Jupyter file contains all the work done in light of the achievement of the f
   - Implementation and comments of **Task 1**;
   
   <p align="center">
-  <img width="460" height="300" src="https://media-cdn.tripadvisor.com/media/photo-s/01/c7/4f/ae/wellness-hotel-schoenblick.jpg">
+  <img width="300" height="170" src="https://media-cdn.tripadvisor.com/media/photo-s/01/c7/4f/ae/wellness-hotel-schoenblick.jpg">
 </p>
   
   - Implementation and comments of **Task 2**;
   
   <p align="center">
-  <img width="460" height="300" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTdeKK6XHCNbYRya6C6IlLb9VOKymdAQy3uWuiJjVlQu_HTuduj">
+  <img width="300" height="170" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTdeKK6XHCNbYRya6C6IlLb9VOKymdAQy3uWuiJjVlQu_HTuduj">
 </p>
   
   - **Bonus step**: implementation of the K-means algorithm from scratch.
