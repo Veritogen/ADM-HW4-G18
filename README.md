@@ -17,7 +17,7 @@ the Jupyter file contains all the work done in light of the achievement of the f
   
   - Implementation and comments of **Task 2**;
   
-  - **Bonus step**: implement the K-means algorithm from scratch.
+  - **Bonus step**: implementation of the K-means algorithm from scratch.
   
 2. `function.py`:
 the file contains all the functions created during the study and used in `Homework_4.ipynb`.
