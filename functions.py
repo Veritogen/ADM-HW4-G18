@@ -135,10 +135,15 @@ def getDescription(link, i):
     time.sleep(2)
     #list with links we couldn't get the description from (diagnostic purposes)
     dead_desc= []
-
+    
+    #getting up beautifulsoup and requests so we can crawl the url passed to the function
     desc_cont = requests.get(link)
     desc_soup = bs(desc_cont.text, 'html.parser')
+    
+    #getting the description of the houses
     desc = desc_soup.find('div',attrs={'class':'col-xs-12 description-text text-compressed','role':'contentinfo','aria-expanded':'false'})
+    
+    #if the description exists the functions cleans and then returns it, otherwise it appends the announcement at the list of the failed descriptions
     if desc is not None:
         desc = desc.get_text()  
         desc=re.sub('\n',' ',desc)
@@ -199,13 +204,16 @@ def cleanDataWc(rawData, lang='italian'):
 '''
 The functions we used for the calculation of the TfIdf matrix.
 '''    
-    
+#creating the two dictionaries for the words of all the description    
 def TermDictionaries(ColumnOfDerscriptions):
     Term_Id = {}
     Inv_Dict = {}
     num = 0
+    #cleaning each description
     for i in ColumnOfDerscriptions:
         app = cleanData(i, lang='italian')
+        
+        #adding the unique words at the dictionaries, updating them: if the word is already in the Term_Id vocabulary the function only update the list of Inv_Dict, otherwise both dictionaries are updated assigning a key to the word and creating the list of announcements where it appears
         for w in set(app):
             if w not in Term_Id:
                 Inv_Dict[len(Term_Id)] = [num]
@@ -215,6 +223,7 @@ def TermDictionaries(ColumnOfDerscriptions):
         num += 1
     return(Term_Id,Inv_Dict)
 
+#calculating the Idf score
 def Idf(word,Inv_Dict,Term_Id,Data):
     key = Term_Id[word]
     Idf = {}
@@ -222,6 +231,7 @@ def Idf(word,Inv_Dict,Term_Id,Data):
     Idf = math.log10(n/len(Inv_Dict[key]))
     return Idf
 
+#calculating the Tf score
 def Tf(word,ann):
     Tf = ann.count(word)/len(ann)
     return Tf        
@@ -231,10 +241,12 @@ The function we used to calculate the jaccard similary.
 '''
 
 def compute_jaccard(user1_vals, user2_vals):
+    #given two arrays, the function transforms them into set to calculate the intersetion and the union
     user1_vals = set(user1_vals)
     user2_vals = set(user2_vals)
     intersection = user1_vals.intersection(user2_vals)
     union = user1_vals.union(user2_vals)
+    #calculating the Jaccard Similarity
     jaccard = len(intersection)/float(len(union))
     return jaccard      
 
