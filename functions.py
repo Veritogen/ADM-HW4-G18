@@ -37,6 +37,12 @@ stemmer = SnowballStemmer('italian')
 from PIL import Image
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 
+import hashlib
+import random
+from itertools import islice
+import fileinput
+import functools
+import pickle
 
 '''
 Below you can find our basic functions, e.g. for saving dataframes or dictionarys. 
@@ -328,4 +334,190 @@ def getClusters(matrix, k_clusters, iterations):
     min_clust = getMinClusters(matrix, min_centroids)
     return min_clust, min_centroids
 
+# pickle library : for saving the files; save_obj and load_obj are the methods that use pickle.
 
+def save_obj(obj, name):
+    """
+    save the object int a pickle file
+    """
+    with open('data/'+ name + '.pkl', 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+def load_obj(name):
+    """
+    load the object from a pickle file
+    """
+    with open('data/' + name + '.pkl', 'rb') as f:
+        return pickle.load(f)
+
+"""
+hash_function(word)
+(It's the same for both cases: in fact, the control for managing the different cases it's in the method create_hash_file_and_dict): 
+
+Given a word as string, each character is mapped using the ASCII function. 
+
+Thus, for each character with the function applied, a number is returned: all these numbers are merged (not summed or multiplied, but "placed together"), in such a way we can obtain a big number.
+"""
+     
+def hash_function(word):    
+    res = [ str(ord(word[i])) if i != 0 else str(ord(word[i])*128) for i in range(0,len(word)) ]
+    return int("".join(res))
+
+"""
+Focusing the attention on how to find the False Positives,  it has been created the "truth_d" dictionary, that is the dictionary based on the file passwords2.txt.
+This dictionary saves as key the original string, keeping track of the duplicates into each list related to it. 
+The list contains the indexes related to the positions  of the strings (the number of the row) into the file.
+
+Together with the creation of truth_d, have been created
+hash_d and hash_d2, with the same reasoning.
+Hence, for each hashed string there is the related list of index of the string hashed.  
+    
+
+create_hash_file_and_dict(truth_d, hash_d, hash_d2, name_hash_final,name_hash_final2, name_hash, name_hash2, start, end, idx):
+
+Starting from empty dictionaries, from zero for the index, from the name of local files (local files have been used in order to not overload Jupyter), the function preprocess everything for the steps: range for random numbers and the function for false positive.
+"""
+
+def create_hash_file_and_dict(truth_d, hash_d, hash_d2, name_hash_final,name_hash_final2, name_hash, name_hash2, start, end, idx):
+    
+    with open("passwords2.txt") as file:
+        with open(name_hash+".txt", "w") as out:
+            with open(name_hash2+".txt", "w") as out2:
+            
+                for row in islice(file, start,end):
+                    row = row[:-2]
+                    if row not in truth_d.keys():
+                        truth_d[row] = [idx]
+                    else:
+                        truth_d[row].append(idx)
+                    hashed = hash_function("".join(sorted(row)))
+                    hashed2 = hash_function(row)
+                    # the difference with the second case is that in the second we have to omit the "".join sorted string 
+                
+                    if hashed not in hash_d.keys():
+                        hash_d[hashed] = [idx]
+                    else:
+                        hash_d[hashed].append(idx)
+                        
+                    if hashed2 not in hash_d2.keys():
+                        hash_d2[hashed2] = [idx]
+                    else:
+                        hash_d2[hashed2].append(idx)
+
+                    out.write(str(hashed)+"\n")
+                    out2.write(str(hashed2)+"\n")
+                    idx += 1
+    file.close()
+    out.close()
+    out2.close()
+    
+    """
+    It subscribe on the "root" hash file all the file temporarely created, 
+    that have to be attached to the hash file (in order to complete the whole hash file with all the hashed passwords ) 
+    """
+    with open(name_hash_final+".txt", 'a') as fout:
+    #count = len(open("passwords_hash1.txt").readlines())
+        with fileinput.input(name_hash+".txt") as fin:                 
+                for line in fin:
+                    fout.write(line)
+    fin.close()
+    fout.close() 
+    
+    with open(name_hash_final2+".txt", 'a') as fout2:
+        with fileinput.input(name_hash2+".txt") as fin2:
+            for line in fin2:
+                    fout2.write(line)
+    fin2.close()
+    fout2.close()
+    
+    return truth_d, hash_d,hash_d2, idx
+
+"""
+same_range(hash_d, namefile):
+this function can take each dictionary of hashes strings. It finds the mean, the minimum and the maximum values from the keys in order to create an acceptable range in which check if the two (random) values will be in this range.    
+"""
+def same_range(hash_d, namefile):
+    hash_keys = hash_d.keys()
+    media = sum(hash_keys)/len(hash_keys)
+    check_range = (max(hash_keys) - media )/2, (media - min(hash_keys))/2
+    lh = len(hash_d)
+    n1 = random.randint(0,lh)
+    n2 = random.randint(0,lh)
+    with open(namefile, "r") as f:
+        for row in islice(f, n1,n1+1):
+            row = row[:-2]
+            num1 = int(row)
+        for row in islice(f, n2, n2+1):
+            row = row[:-2]
+            num2 = int(row)
+
+    response = False
+
+    if num1 <= check_range[1] and num1 >= check_range[0] and num2 <= check_range[1] and num2 >=check_range[0]:
+        response = True
+    if (response == True):
+        print(num1, " and ", num2, " are in the same range")
+    else:
+        print(num1, " and ", num2, " are not in the same range")
+    
+"""   
+How duplicates have been found:
+
+Taking the file saved as txt, converting it as lists, it's possible to find duplicates using the set function, that deletes duplicates.  
+Thus, checking the length of the original file with the set.
+"""
+
+def find_dup():
+    
+    lista = []
+    with open("passwords2.txt") as f:
+    
+        for row in f:
+            row = row[:-2]        
+            lista.append(row)
+    return(len(lista) - len(set(lista)))
+    
+
+"""
+false_positives(hash_d):
+the method takes again the hash dictionary and, taking the truth dictionary, it checks if the list into the hash related to the string into truth is actually the same. 
+If not, the problem of false positive could subsist:
+If the hashed string contains more indexes than expected, it means that the hash function has processed same hash values but related to different strings, as the real values say.
+This difference is considered and it has been possible to compute the false positives.  
+"""
+def false_positives(hash_d):
+    fp = 0
+    hash_keys = hash_d.keys()
+    for key in truth_d.keys():
+        hashed = hash_function("".join(sorted(key)))
+        
+    #values = list(map(lambda x: x("".join(sorted(key))), [hash_function])) # the difference with the second case is that in the second we have to omit the "".join sorted string     
+    #summing = functools.reduce((lambda y, z: y+z), values[0])        
+        hs = hash_d[hashed]
+        if len(truth_d[key]) == len(hs):
+            continue        
+        else:
+            if len(hs)>len(truth_d[key]):
+                diff = abs(len(truth_d[key] - len(hs)))
+                fp += diff
+    return fp     
+
+
+def false_positives2(hash_d):
+    fp = 0
+    hash_keys = hash_d.keys()
+    for key in truth_d.keys():
+        hashed = hash_function(key)
+        
+    #values = list(map(lambda x: x("".join(sorted(key))), [hash_function])) # the difference with the second case is that in the second we have to omit the "".join sorted string     
+    #summing = functools.reduce((lambda y, z: y+z), values[0])        
+        hs = hash_d[hashed]
+        if len(truth_d[key]) == len(hs):
+            continue        
+        else:
+            
+            if len(hs)>len(truth_d[key]):
+            
+                diff = abs(int(len(truth_d[key]) - len(hs)))
+                fp += diff
+    return fp     
