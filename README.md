@@ -6,7 +6,7 @@ In this assignment we solved two different task: in the first one we perform a c
 
 ## Data Source
 For the first task, we used the data of the [Immobiliare.it](https://www.immobiliare.it/) website, taking into account more than 10k announcements. 
-For the second tack, tha password are given as an input in the file [passwords2.txt](https://drive.google.com/file/d/1wTmOU-yqk4qdQYg42AquhzgpNGrRA96d/view).
+For the second task, tha password are given as an input in the file [passwords2.txt](https://drive.google.com/file/d/1wTmOU-yqk4qdQYg42AquhzgpNGrRA96d/view).
 
 ## Description of the project
 In this repository you will find:
